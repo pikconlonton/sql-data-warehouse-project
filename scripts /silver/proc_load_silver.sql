@@ -310,27 +310,35 @@ BEGIN
 						ELSE measurement_date
 					END AS measurement_date,
 					CASE
-						WHEN blood_pressure IS NULL THEN 'n/a'
-						ELSE blood_pressure
+						WHEN TRIM(blood_pressure) IS NULL THEN 'n/a'
+						WHEN CAST(LEFT(TRIM(blood_pressure), CHARINDEX('/', TRIM(blood_pressure)) - 1) AS FLOAT) < 90
+						OR CAST(TRIM(SUBSTRING(TRIM(blood_pressure), CHARINDEX('/', TRIM(blood_pressure)) + 1, 100)) AS FLOAT) > 180
+						THEN 'n/a'
+						ELSE TRIM(blood_pressure)
 					END AS blood_pressure,
 					CASE
-						WHEN heart_rate IS NULL THEN 'n/a'
+						WHEN heart_rate IS NULL THEN '-1'
+						WHEN heart_rate < 50 OR heart_rate > 120 THEN '-1'
 						ELSE heart_rate
 					END AS heart_rate,
 					CASE
-						WHEN respiratory_rate IS NULL THEN 'n/a'
+						WHEN respiratory_rate IS NULL THEN '-1'
+						WHEN respiratory_rate < 10 OR respiratory_rate > 30 THEN '-1'
 						ELSE respiratory_rate
 					END AS respiratory_rate,
 					CASE
-						WHEN temperature IS NULL THEN 'n/a'
+						WHEN temperature IS NULL THEN '-1'
+						WHEN temperature < 30 OR temperature > 43 THEN '-1'
 						ELSE temperature
 					END AS temperature,
 					CASE
-						WHEN oxygen_saturation IS NULL THEN 'n/a'
+						WHEN oxygen_saturation IS NULL THEN '-1'
+						WHEN oxygen_saturation < 85 OR oxygen_saturation > 105 THEN '-1'
 						ELSE oxygen_saturation
 					END AS oxygen_saturation,
 					CASE
 						WHEN blood_sugar IS NULL THEN 'n/a'
+						WHEN blood_sugar < 65 OR blood_sugar > 255 THEN '-1'
 						ELSE blood_sugar
 					END AS blood_sugar
 				FROM bronze.VitalSigns
@@ -400,7 +408,7 @@ BEGIN
 	END TRY
 	BEGIN CATCH
 		PRINT '=========================================='
-		PRINT 'ERROR OCCURED DURING LOADING BRONZE LAYER'
+		PRINT 'ERROR OCCURED DURING LOADING SILVER LAYER'
 		PRINT 'Error Message' + ERROR_MESSAGE();
 		PRINT 'Error Message' + CAST (ERROR_NUMBER() AS NVARCHAR);
 		PRINT 'Error Message' + CAST (ERROR_STATE() AS NVARCHAR);
