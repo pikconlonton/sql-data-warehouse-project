@@ -38,7 +38,7 @@ BEGIN
 				appointment_id,
 				patient_id,
 				doctor_id,
-				--appointment_date,
+				appointment_date,
 				start_time,
 				end_time,
 				reason,
@@ -51,7 +51,10 @@ BEGIN
 					appointment_id,
 					patient_id,
 					doctor_id,
-					--appointment_date,
+					CASE 
+						WHEN start_time <> appointment_date THEN start_time
+						ELSE appointment_date
+					END AS appointment_date,
 					start_time,
 					end_time,
 					CASE
@@ -249,6 +252,7 @@ BEGIN
 			PRINT '>> --------';
 
 			--table Treatment
+			SET @start_time = GETDATE();
 			PRINT '>> Truncating Table: silver.Treatments';
 			TRUNCATE TABLE silver.Treatments;
 			PRINT '>> Inserting Data Into: silver.Treatments';
@@ -277,6 +281,7 @@ BEGIN
 			PRINT '>> --------';
 
 			--table vitalSign
+			SET @start_time = GETDATE();
 			PRINT '>> Truncating Table: silver.VitalSigns';
 			TRUNCATE TABLE silver.VitalSigns;
 			PRINT '>> Inserting Data Into: silver.VitalSigns';
@@ -333,6 +338,60 @@ BEGIN
 			PRINT '>> Load Duration: ' + CAST(DATEDIFF(SECOND, @start_time, @end_time) AS NVARCHAR) + ' seconds';
 			PRINT '>> --------';
 
+			--table LabResult
+			SET @start_time = GETDATE();
+			PRINT '>> Truncating Table: silver.LabResults';
+			TRUNCATE TABLE silver.LabResults;
+			PRINT '>> Inserting Data Into: silver.LabResults';
+			INSERT INTO silver.LabResults(
+				lab_result_id,
+				appointment_id,
+				patient_id,
+				test_type,
+				parameter,
+				value,
+				unit,
+				normal_range,
+				interpretation,
+				test_date
+			)
+				SELECT
+					lab_result_id,
+					appointment_id,
+					patient_id,
+					CASE
+						WHEN TRIM(test_type) IS NULL THEN 'n/a'
+						ELSE TRIM(test_type)
+					END AS test_type,
+					CASE
+						WHEN TRIM(parameter) IS NULL THEN 'n/a'
+						ELSE TRIM(parameter)
+					END AS test_type,
+					CASE
+						WHEN TRIM(value) IS NULL THEN 'n/a'
+						ELSE TRIM(value)
+					END AS value,
+					CASE
+						WHEN TRIM(unit) IS NULL THEN 'n/a'
+						ELSE TRIM(unit)
+					END AS unit,
+					CASE
+						WHEN TRIM(normal_range) IS NULL THEN 'n/a'
+						ELSE TRIM(normal_range)
+					END AS normal_range,
+					CASE
+						WHEN TRIM(interpretation) IS NULL THEN 'n/a'
+						ELSE TRIM(interpretation)
+					END AS interpretation,
+					CASE
+						WHEN test_date IS NULL THEN GETDATE()
+						ELSE test_date
+					END AS test_date
+				FROM bronze.LabResults
+			SET @end_time = GETDATE();
+			PRINT '>> Load Duration: ' + CAST(DATEDIFF(SECOND, @start_time, @end_time) AS NVARCHAR) + ' seconds';
+			PRINT '>> --------';
+					
 		SET @batch_end_time = GETDATE();
 		PRINT '=========================================='
 		PRINT 'Loading Silver Layer is Completed';
