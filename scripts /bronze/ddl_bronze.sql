@@ -142,3 +142,22 @@ CREATE TABLE bronze.Prescriptions (
     note NVARCHAR(255)
 );
 GO
+
+-- Bảng Lab_results 
+IF OBJECT_ID('bronze.Lab_results', 'U') IS NOT NULL
+    DROP TABLE bronze.Lab_results ;
+GO
+CREATE TABLE bronze.Lab_results (
+    lab_result_id INT PRIMARY KEY,
+    appointment_id INT,
+    patient_id INT,
+    test_type NVARCHAR(100),
+    parameter NVARCHAR(100),
+    value NVARCHAR(50),
+    unit NVARCHAR(20),
+    normal_range NVARCHAR(50),
+    interpretation NVARCHAR(50),
+    test_date DATE
+);
+GO
+
