@@ -23,10 +23,22 @@ BEGIN
     DROP DATABASE DataWarehouse;
 END;
 GO
+-- Drop and recreate the 'DB_mart' database
+IF EXISTS (SELECT 1 FROM sys.databases WHERE name = 'DB_mart')
+BEGIN
+    ALTER DATABASE DB_mart SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
+    DROP DATABASE DB_mart;
+END;
+GO
 
 -- Create the 'DataWarehouse' database
 CREATE DATABASE DataWarehouse;
 GO
+
+-- Create the 'DB_mart' database
+CREATE DATABASE DB_mart;
+GO
+
 
 USE DataWarehouse;
 GO
@@ -39,4 +51,6 @@ CREATE SCHEMA silver;
 GO
 
 CREATE SCHEMA gold;
+GO
+CREATE SCHEMA mart;
 GO
