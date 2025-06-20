@@ -1,3 +1,5 @@
+USE DataWarehouse
+GO
 /*
 ===============================================================================
 Stored Procedure: Load Silver Layer (Bronze -> Silver)
@@ -31,8 +33,8 @@ BEGIN
 
 			--table Appointment
 			SET @start_time = GETDATE();
-			--PRINT '>> Truncating Table: silver.Appointments';
-			--TRUNCATE TABLE silver.Appointments;
+			PRINT '>> Truncating Table: silver.Appointments';
+			TRUNCATE TABLE silver.Appointments;
 			PRINT '>> Inserting Data Into: silver.Appointments';
 			INSERT INTO silver.Appointments (
 				appointment_id,
@@ -79,19 +81,14 @@ BEGIN
 						ELSE TRIM(appointment_type)
 					END AS reason
 				FROM bronze.Appointments AS src
-				WHERE NOT EXISTS (
-					SELECT 1
-					FROM bronze.Appointments AS des
-					WHERE src.appointment_id = des.appointment_id
-				)
 			SET @end_time = GETDATE();
 			PRINT '>> Load Duration: ' + CAST(DATEDIFF(SECOND, @start_time, @end_time) AS NVARCHAR) + ' seconds';
 			PRINT '>> --------';
 
 			--table Diseases
 			SET @start_time = GETDATE();
-			--PRINT '>> Truncating Table: silver.Diseases';
-			--TRUNCATE TABLE silver.Diseases;
+			PRINT '>> Truncating Table: silver.Diseases';
+			TRUNCATE TABLE silver.Diseases;
 			PRINT '>> Inserting Data Into: silver.Diseases';
 			INSERT INTO silver.Diseases (
 				disease_id,
@@ -111,19 +108,14 @@ BEGIN
 						ELSE diagnosis_date
 					END AS diagnosis_date
 				FROM bronze.Diseases AS src
-				WHERE NOT EXISTS (
-					SELECT 1
-					FROM bronze.Diseases AS des
-					WHERE src.disease_id = des.disease_id
-				)
 			SET @end_time = GETDATE();
 			PRINT '>> Load Duration: ' + CAST(DATEDIFF(SECOND, @start_time, @end_time) AS NVARCHAR) + ' seconds';
 			PRINT '>> --------';
 
 			--table doctor
 			SET @start_time = GETDATE();
-			--PRINT '>> Truncating Table: silver.Doctors';
-			--TRUNCATE TABLE silver.Doctors;
+			PRINT '>> Truncating Table: silver.Doctors';
+			TRUNCATE TABLE silver.Doctors;
 			PRINT '>> Inserting Data Into: silver.Doctors';
 			INSERT INTO silver.Doctors(
 				doctor_id,
@@ -167,19 +159,14 @@ BEGIN
 						ELSE TRIM(email)					
 					END AS email
 				FROM bronze.Doctors AS src
-				WHERE NOT EXISTS (
-					SELECT 1
-					FROM bronze.Doctors AS des
-					WHERE src.doctor_id = des.doctor_id
-				)
 			SET @end_time = GETDATE();
 			PRINT '>> Load Duration: ' + CAST(DATEDIFF(SECOND, @start_time, @end_time) AS NVARCHAR) + ' seconds';
 			PRINT '>> --------';
 
 			--table HospitalFee
 			SET @start_time = GETDATE();
-			--PRINT '>> Truncating Table: silver.HospitalFees';
-			--TRUNCATE TABLE silver.HospitalFees;
+			PRINT '>> Truncating Table: silver.HospitalFees';
+			TRUNCATE TABLE silver.HospitalFees;
 			PRINT '>> Inserting Data Into: silver.HospitalFees';
 			INSERT INTO silver.HospitalFees(
 				fee_id,
@@ -217,19 +204,14 @@ BEGIN
 					ELSE fee_date
 				END AS fee_date
 				FROM bronze.HospitalFees AS src
-				WHERE NOT EXISTS (
-					SELECT 1
-					FROM bronze.HospitalFees AS des
-					WHERE src.fee_id = des.fee_id
-				)
 			SET @end_time = GETDATE()
 			PRINT '>> Load Duration: ' + CAST(DATEDIFF(SECOND, @start_time, @end_time) AS NVARCHAR) + ' seconds';
 			PRINT '>> --------';
 
 			--table patient
 			SET @start_time = GETDATE();
-			--PRINT '>> Truncating Table: silver.Patients';
-			--TRUNCATE TABLE silver.Patients;
+			PRINT '>> Truncating Table: silver.Patients';
+			TRUNCATE TABLE silver.Patients;
 			PRINT '>> Inserting Data Into: silver.Patients';
 			INSERT INTO silver.Patients(
 				patient_id,
@@ -266,19 +248,14 @@ BEGIN
 						ELSE TRIM(email)					
 					END AS email
 				FROM bronze.Patients AS src
-				WHERE NOT EXISTS (
-					SELECT 1
-					FROM bronze.Patients AS des
-					WHERE src.patient_id = des.patient_id
-				)
 			SET @end_time = GETDATE();
 			PRINT '>> Load Duration: ' + CAST(DATEDIFF(SECOND, @start_time, @end_time) AS NVARCHAR) + ' seconds';
 			PRINT '>> --------';
 
 			--table Prescription
 			SET @start_time = GETDATE();
-			--PRINT '>> Truncating Table: silver.Prescriptions';
-			--TRUNCATE TABLE silver.Prescriptions;
+			PRINT '>> Truncating Table: silver.Prescriptions';
+			TRUNCATE TABLE silver.Prescriptions;
 			PRINT '>> Inserting Data Into: silver.Prescriptions';
 			INSERT INTO silver.Prescriptions(
 				prescription_id,
@@ -322,19 +299,14 @@ BEGIN
 						ELSE TRIM(note)
 					END AS note
 				FROM bronze.Prescriptions AS src
-				WHERE NOT EXISTS (
-					SELECT 1
-					FROM bronze.Prescriptions AS des
-					WHERE src.prescription_id = des.prescription_id
-				)
 			SET @end_time = GETDATE();
 			PRINT '>> Load Duration: ' + CAST(DATEDIFF(SECOND, @start_time, @end_time) AS NVARCHAR) + ' seconds';
 			PRINT '>> --------';
 
 			--table Treatment
 			SET @start_time = GETDATE();
-			--PRINT '>> Truncating Table: silver.Treatments';
-			--TRUNCATE TABLE silver.Treatments;
+			PRINT '>> Truncating Table: silver.Treatments';
+			TRUNCATE TABLE silver.Treatments;
 			PRINT '>> Inserting Data Into: silver.Treatments';
 			INSERT INTO silver.Treatments(
 				treatment_id,
@@ -358,19 +330,14 @@ BEGIN
 						ELSE treatment_date
 					END AS treatment_date
 				FROM bronze.Treatments AS src
-				WHERE NOT EXISTS (
-					SELECT 1
-					FROM bronze.Treatments AS des
-					WHERE src.treatment_id = des.treatment_id
-				)
 			SET @end_time = GETDATE();
 			PRINT '>> Load Duration: ' + CAST(DATEDIFF(SECOND, @start_time, @end_time) AS NVARCHAR) + ' seconds';
 			PRINT '>> --------';
 
 			--table vitalSign
 			SET @start_time = GETDATE();
-			--PRINT '>> Truncating Table: silver.VitalSigns';
-			--TRUNCATE TABLE silver.VitalSigns;
+			PRINT '>> Truncating Table: silver.VitalSigns';
+			TRUNCATE TABLE silver.VitalSigns;
 			PRINT '>> Inserting Data Into: silver.VitalSigns';
 			INSERT INTO silver.VitalSigns(
 				vital_id,
@@ -429,74 +396,10 @@ BEGIN
 						ELSE blood_sugar
 					END AS blood_sugar
 				FROM bronze.VitalSigns AS src
-				WHERE NOT EXISTS (
-					SELECT 1
-					FROM bronze.VitalSigns AS des
-					WHERE src.vital_id = des.vital_id
-				)
 			SET @end_time = GETDATE();
 			PRINT '>> Load Duration: ' + CAST(DATEDIFF(SECOND, @start_time, @end_time) AS NVARCHAR) + ' seconds';
 			PRINT '>> --------';
 
-			--table LabResult
-			SET @start_time = GETDATE();
-			--PRINT '>> Truncating Table: silver.LabResults';
-			--TRUNCATE TABLE silver.LabResults;
-			PRINT '>> Inserting Data Into: silver.LabResults';
-			INSERT INTO silver.LabResults(
-				lab_result_id,
-				appointment_id,
-				patient_id,
-				test_type,
-				parameter,
-				value,
-				unit,
-				normal_range,
-				interpretation,
-				test_date
-			)
-				SELECT
-					lab_result_id,
-					appointment_id,
-					patient_id,
-					CASE
-						WHEN TRIM(test_type) IS NULL THEN 'n/a'
-						ELSE TRIM(test_type)
-					END AS test_type,
-					CASE
-						WHEN TRIM(parameter) IS NULL THEN 'n/a'
-						ELSE TRIM(parameter)
-					END AS test_type,
-					CASE
-						WHEN TRIM(value) IS NULL THEN 'n/a'
-						ELSE TRIM(value)
-					END AS value,
-					CASE
-						WHEN TRIM(unit) IS NULL THEN 'n/a'
-						ELSE TRIM(unit)
-					END AS unit,
-					CASE
-						WHEN TRIM(normal_range) IS NULL THEN 'n/a'
-						ELSE TRIM(normal_range)
-					END AS normal_range,
-					CASE
-						WHEN TRIM(interpretation) IS NULL THEN 'n/a'
-						ELSE TRIM(interpretation)
-					END AS interpretation,
-					CASE
-						WHEN test_date IS NULL THEN GETDATE()
-						ELSE test_date
-					END AS test_date
-				FROM bronze.LabResults AS src
-				WHERE NOT EXISTS (
-					SELECT 1
-					FROM bronze.LabResults AS des
-					WHERE src.lab_result_id = des.lab_result_id
-				)
-			SET @end_time = GETDATE();
-			PRINT '>> Load Duration: ' + CAST(DATEDIFF(SECOND, @start_time, @end_time) AS NVARCHAR) + ' seconds';
-			PRINT '>> --------';
-					
 		SET @batch_end_time = GETDATE();
 		PRINT '=========================================='
 		PRINT 'Loading Silver Layer is Completed';
