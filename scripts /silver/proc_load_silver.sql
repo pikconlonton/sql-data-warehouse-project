@@ -31,8 +31,8 @@ BEGIN
 
 			--table Appointment
 			SET @start_time = GETDATE();
-			PRINT '>> Truncating Table: silver.Appointments';
-			TRUNCATE TABLE silver.Appointments;
+			--PRINT '>> Truncating Table: silver.Appointments';
+			--TRUNCATE TABLE silver.Appointments;
 			PRINT '>> Inserting Data Into: silver.Appointments';
 			INSERT INTO silver.Appointments (
 				appointment_id,
@@ -51,12 +51,18 @@ BEGIN
 					appointment_id,
 					patient_id,
 					doctor_id,
-					CASE 
-						WHEN start_time <> appointment_date THEN start_time
+					CASE
+						WHEN appointment_date IS NULL THEN 'n/a'
 						ELSE appointment_date
 					END AS appointment_date,
-					start_time,
-					end_time,
+					CASE
+						WHEN start_time IS NULL THEN 'n/a'
+						ELSE start_time
+					END AS start_time,
+					CASE
+						WHEN end_time IS NULL THEN 'n/a'
+						ELSE end_time
+					END AS end_time,
 					CASE
 						WHEN reason IS NUll THEN 'n/a'
 						ELSE TRIM(reason)
@@ -72,16 +78,20 @@ BEGIN
 						WHEN appointment_type IS NUll THEN 'n/a'
 						ELSE TRIM(appointment_type)
 					END AS reason
-				FROM bronze.Appointments
-				ORDER BY appointment_date ASC
+				FROM bronze.Appointments AS src
+				WHERE NOT EXISTS (
+					SELECT 1
+					FROM bronze.Appointments AS des
+					WHERE src.appointment_id = des.appointment_id
+				)
 			SET @end_time = GETDATE();
 			PRINT '>> Load Duration: ' + CAST(DATEDIFF(SECOND, @start_time, @end_time) AS NVARCHAR) + ' seconds';
 			PRINT '>> --------';
 
 			--table Diseases
 			SET @start_time = GETDATE();
-			PRINT '>> Truncating Table: silver.Diseases';
-			TRUNCATE TABLE silver.Diseases;
+			--PRINT '>> Truncating Table: silver.Diseases';
+			--TRUNCATE TABLE silver.Diseases;
 			PRINT '>> Inserting Data Into: silver.Diseases';
 			INSERT INTO silver.Diseases (
 				disease_id,
@@ -92,21 +102,28 @@ BEGIN
 				SELECT
 					disease_id,
 					patient_id,
-					disease_name,
+					CASE
+						WHEN disease_name IS NUll THEN 'Undiscovered disease'
+						ELSE disease_name
+					END AS disease_name,
 					CASE
 						WHEN diagnosis_date IS NUll THEN GETDATE()
 						ELSE diagnosis_date
 					END AS diagnosis_date
-				FROM bronze.Diseases
-				ORDER BY diagnosis_date ASC
+				FROM bronze.Diseases AS src
+				WHERE NOT EXISTS (
+					SELECT 1
+					FROM bronze.Diseases AS des
+					WHERE src.disease_id = des.disease_id
+				)
 			SET @end_time = GETDATE();
 			PRINT '>> Load Duration: ' + CAST(DATEDIFF(SECOND, @start_time, @end_time) AS NVARCHAR) + ' seconds';
 			PRINT '>> --------';
 
 			--table doctor
 			SET @start_time = GETDATE();
-			PRINT '>> Truncating Table: silver.Doctors';
-			TRUNCATE TABLE silver.Doctors;
+			--PRINT '>> Truncating Table: silver.Doctors';
+			--TRUNCATE TABLE silver.Doctors;
 			PRINT '>> Inserting Data Into: silver.Doctors';
 			INSERT INTO silver.Doctors(
 				doctor_id,
@@ -120,33 +137,49 @@ BEGIN
 				SELECT 
 					doctor_id,
 					CASE	
+						WHEN name IS NULL THEN 'n/a'
 						WHEN LOWER(LEFT(TRIM(name), CHARINDEX(' ', TRIM(name))-1)) IN ('chị', 'anh', 'bà', 'ông', 'cô', 'chú') THEN TRIM(SUBSTRING(TRIM(name), CHARINDEX(' ', TRIM(name))+1, 100))
 						WHEN LOWER(LEFT(TRIM(name), CHARINDEX(' ', TRIM(name), CHARINDEX(' ', TRIM(name))+1))) IN ('quý ông', 'quý bà', 'quý cô') THEN TRIM(SUBSTRING(TRIM(name), CHARINDEX(' ', TRIM(name), CHARINDEX(' ', TRIM(name))+1)+1, 100))
 						ELSE TRIM(name)
 					END AS name,
-					last_name,
+					CASE
+						WHEN last_name IS NULL THEN 'n/a'
+						ELSE last_name
+					END AS last_name,
 					--CASE 
 					--	WHEN TRIM(LOWER(gender)) IN ('male', 'm') THEN 'Nam'
 					--	WHEN TRIM(LOWER(gender)) IN ('female', 'f') THEN 'Nữ'
 					--	WHEN TRIM(LOWER(gender)) IS NULL THEN 'n/a'
 					--	ELSE TRIM(gender)
 					--END AS gender,
-					specialization,
+					CASE
+						WHEN specialization IS NULL THEN 'n/a'
+						ELSE specialization
+					END AS specialization,
 					CASE 
 						WHEN SUBSTRING(phone, 1, 1) = '+' THEN '0' + REPLACE(REPLACE(SUBSTRING(TRIM(phone), 4, LEN(TRIM(phone))),'-',''), ' ', '')
 						WHEN SUBSTRING(phone, 1, 1) = '(' THEN REPLACE(REPLACE(REPLACE(REPLACE(TRIM(phone),'-',''), ' ', ''), '(', ''), ')', '')
 						ELSE REPLACE(REPLACE(TRIM(phone),'-',''), ' ', '')
 					END AS phone,
-					email
-				FROM bronze.Doctors
+					CASE
+						WHEN TRIM(email) IS NULL THEN 'n\a'
+						WHEN TRIM(email) LIKE '%[^a-zA-Z0-9@.]%' OR TRIM(email) NOT LIKE '%@%.%' THEN 'n/a'
+						ELSE TRIM(email)					
+					END AS email
+				FROM bronze.Doctors AS src
+				WHERE NOT EXISTS (
+					SELECT 1
+					FROM bronze.Doctors AS des
+					WHERE src.doctor_id = des.doctor_id
+				)
 			SET @end_time = GETDATE();
 			PRINT '>> Load Duration: ' + CAST(DATEDIFF(SECOND, @start_time, @end_time) AS NVARCHAR) + ' seconds';
 			PRINT '>> --------';
 
 			--table HospitalFee
 			SET @start_time = GETDATE();
-			PRINT '>> Truncating Table: silver.HospitalFees';
-			TRUNCATE TABLE silver.HospitalFees;
+			--PRINT '>> Truncating Table: silver.HospitalFees';
+			--TRUNCATE TABLE silver.HospitalFees;
 			PRINT '>> Inserting Data Into: silver.HospitalFees';
 			INSERT INTO silver.HospitalFees(
 				fee_id,
@@ -162,25 +195,41 @@ BEGIN
 				fee_id,
 				appointment_id,
 				patient_id,
-				TRIM(service_type),
-				TRIM(description),
-				ROUND(CAST(amount AS FLOAT), 0),
+				CASE
+					WHEN TRIM(service_type) IS NULL OR LEN(TRIM(service_type)) = 0THEN 'n/a'
+					ELSE TRIM(service_type)
+				END AS service_type,
+				CASE
+					WHEN TRIM(description) IS NULL OR LEN(TRIM(description)) = 0THEN 'n/a'
+					ELSE TRIM(description)
+				END AS description,
 				CASE 
-						WHEN SUBSTRING(phone, 1, 1) = '+' THEN '0' + REPLACE(REPLACE(SUBSTRING(TRIM(phone), 4, LEN(TRIM(phone))),'-',''), ' ', '')
-						WHEN SUBSTRING(phone, 1, 1) = '(' THEN REPLACE(REPLACE(REPLACE(REPLACE(TRIM(phone),'-',''), ' ', ''), '(', ''), ')', '')
-						ELSE REPLACE(REPLACE(TRIM(phone),'-',''), ' ', '')
-					END AS phone,
-				fee_date
-				FROM bronze.HospitalFees
-				ORDER BY fee_date ASC
-			SET @end_time = GETDATE();
+					WHEN amount IS NULL THEN 0
+					ELSE amount
+				END AS amount,
+				CASE 
+					WHEN SUBSTRING(phone, 1, 1) = '+' THEN '0' + REPLACE(REPLACE(SUBSTRING(TRIM(phone), 4, LEN(TRIM(phone))),'-',''), ' ', '')
+					WHEN SUBSTRING(phone, 1, 1) = '(' THEN REPLACE(REPLACE(REPLACE(REPLACE(TRIM(phone),'-',''), ' ', ''), '(', ''), ')', '')
+					ELSE REPLACE(REPLACE(TRIM(phone),'-',''), ' ', '')
+				END AS phone,
+				CASE
+					WHEN fee_date IS NULL THEN 'n/a'
+					ELSE fee_date
+				END AS fee_date
+				FROM bronze.HospitalFees AS src
+				WHERE NOT EXISTS (
+					SELECT 1
+					FROM bronze.HospitalFees AS des
+					WHERE src.fee_id = des.fee_id
+				)
+			SET @end_time = GETDATE()
 			PRINT '>> Load Duration: ' + CAST(DATEDIFF(SECOND, @start_time, @end_time) AS NVARCHAR) + ' seconds';
 			PRINT '>> --------';
 
 			--table patient
 			SET @start_time = GETDATE();
-			PRINT '>> Truncating Table: silver.Patients';
-			TRUNCATE TABLE silver.Patients;
+			--PRINT '>> Truncating Table: silver.Patients';
+			--TRUNCATE TABLE silver.Patients;
 			PRINT '>> Inserting Data Into: silver.Patients';
 			INSERT INTO silver.Patients(
 				patient_id,
@@ -199,8 +248,8 @@ BEGIN
 						ELSE TRIM(name)
 					END AS name,
 					CASE 
-						WHEN TRIM(LOWER(gender)) IN ('male', 'm') THEN 'Nam'
-						WHEN TRIM(LOWER(gender)) IN ('female', 'f') THEN 'Nữ'
+						WHEN TRIM(LOWER(gender)) IN ('male', 'm', 'nam') THEN 'Nam'
+						WHEN TRIM(LOWER(gender)) IN ('female', 'f', 'nữ', 'nu') THEN 'Nữ'
 						WHEN TRIM(LOWER(gender)) IS NULL THEN 'n/a'
 						ELSE TRIM(gender)
 					END AS gender,
@@ -211,17 +260,25 @@ BEGIN
 						WHEN SUBSTRING(phone, 1, 1) = '(' THEN REPLACE(REPLACE(REPLACE(REPLACE(TRIM(phone),'-',''), ' ', ''), '(', ''), ')', '')
 						ELSE REPLACE(REPLACE(TRIM(phone),'-',''), ' ', '')
 					END AS phone,
-					email
-				FROM bronze.Patients
-				ORDER BY dob ASC
+					CASE
+						WHEN TRIM(email) IS NULL THEN 'n\a'
+						WHEN TRIM(email) LIKE '%[^a-zA-Z0-9@.]%' OR TRIM(email) NOT LIKE '%@%.%' THEN 'n/a'
+						ELSE TRIM(email)					
+					END AS email
+				FROM bronze.Patients AS src
+				WHERE NOT EXISTS (
+					SELECT 1
+					FROM bronze.Patients AS des
+					WHERE src.patient_id = des.patient_id
+				)
 			SET @end_time = GETDATE();
 			PRINT '>> Load Duration: ' + CAST(DATEDIFF(SECOND, @start_time, @end_time) AS NVARCHAR) + ' seconds';
 			PRINT '>> --------';
 
 			--table Prescription
 			SET @start_time = GETDATE();
-			PRINT '>> Truncating Table: silver.Prescriptions';
-			TRUNCATE TABLE silver.Prescriptions;
+			--PRINT '>> Truncating Table: silver.Prescriptions';
+			--TRUNCATE TABLE silver.Prescriptions;
 			PRINT '>> Inserting Data Into: silver.Prescriptions';
 			INSERT INTO silver.Prescriptions(
 				prescription_id,
@@ -240,21 +297,44 @@ BEGIN
 					appointment_id,
 					doctor_id,
 					patient_id,
-					TRIM(medicine_name),
-					TRIM(form),
-					dosage_mg,
-					TRIM(instruction),
-					duration_days,
-					TRIM(note)
-				FROM bronze.Prescriptions
+					CASE
+						WHEN TRIM(medicine_name) IS NULL OR LEN(TRIM(medicine_name)) = 0 THEN 'n/a'
+						ELSE TRIM(medicine_name)
+					END AS medicine_name,
+					CASE
+						WHEN TRIM(form) IS NULL OR LEN(TRIM(form)) = 0 THEN 'n/a'
+						ELSE TRIM(form)
+					END AS form,
+					CASE
+						WHEN dosage_mg IS NULL THEN 'n/a'
+						ELSE dosage_mg
+					END AS dosage_mg,
+					CASE
+						WHEN TRIM(instruction) IS NULL OR LEN(TRIM(instruction)) = 0 THEN 'n/a'
+						ELSE TRIM(instruction)
+					END AS instruction,
+					CASE
+						WHEN duration_days IS NULL THEN 0
+						ELSE duration_days
+					END AS duration_days,
+					CASE
+						WHEN TRIM(note) IS NULL OR LEN(TRIM(note)) = 0 THEN 'n/a'
+						ELSE TRIM(note)
+					END AS note
+				FROM bronze.Prescriptions AS src
+				WHERE NOT EXISTS (
+					SELECT 1
+					FROM bronze.Prescriptions AS des
+					WHERE src.prescription_id = des.prescription_id
+				)
 			SET @end_time = GETDATE();
 			PRINT '>> Load Duration: ' + CAST(DATEDIFF(SECOND, @start_time, @end_time) AS NVARCHAR) + ' seconds';
 			PRINT '>> --------';
 
 			--table Treatment
 			SET @start_time = GETDATE();
-			PRINT '>> Truncating Table: silver.Treatments';
-			TRUNCATE TABLE silver.Treatments;
+			--PRINT '>> Truncating Table: silver.Treatments';
+			--TRUNCATE TABLE silver.Treatments;
 			PRINT '>> Inserting Data Into: silver.Treatments';
 			INSERT INTO silver.Treatments(
 				treatment_id,
@@ -273,17 +353,24 @@ BEGIN
 						WHEN TRIM(treatment_description) IS NULL THEN 'n/a'
 						ELSE TRIM(treatment_description)
 					END AS treatment_description,
-					treatment_date
-				FROM bronze.Treatments
-				ORDER BY treatment_date DESC
+					CASE
+						WHEN treatment_date IS NULL THEN 'n/a'
+						ELSE treatment_date
+					END AS treatment_date
+				FROM bronze.Treatments AS src
+				WHERE NOT EXISTS (
+					SELECT 1
+					FROM bronze.Treatments AS des
+					WHERE src.treatment_id = des.treatment_id
+				)
 			SET @end_time = GETDATE();
 			PRINT '>> Load Duration: ' + CAST(DATEDIFF(SECOND, @start_time, @end_time) AS NVARCHAR) + ' seconds';
 			PRINT '>> --------';
 
 			--table vitalSign
 			SET @start_time = GETDATE();
-			PRINT '>> Truncating Table: silver.VitalSigns';
-			TRUNCATE TABLE silver.VitalSigns;
+			--PRINT '>> Truncating Table: silver.VitalSigns';
+			--TRUNCATE TABLE silver.VitalSigns;
 			PRINT '>> Inserting Data Into: silver.VitalSigns';
 			INSERT INTO silver.VitalSigns(
 				vital_id,
@@ -317,39 +404,44 @@ BEGIN
 						ELSE TRIM(blood_pressure)
 					END AS blood_pressure,
 					CASE
-						WHEN heart_rate IS NULL THEN '-1'
-						WHEN heart_rate < 50 OR heart_rate > 120 THEN '-1'
+						WHEN heart_rate IS NULL THEN 70
+						WHEN heart_rate < 50 OR heart_rate > 120 THEN 70
 						ELSE heart_rate
 					END AS heart_rate,
 					CASE
-						WHEN respiratory_rate IS NULL THEN '-1'
-						WHEN respiratory_rate < 10 OR respiratory_rate > 30 THEN '-1'
+						WHEN respiratory_rate IS NULL THEN 20
+						WHEN respiratory_rate < 10 OR respiratory_rate > 30 THEN 20
 						ELSE respiratory_rate
 					END AS respiratory_rate,
 					CASE
-						WHEN temperature IS NULL THEN '-1'
-						WHEN temperature < 30 OR temperature > 43 THEN '-1'
+						WHEN temperature IS NULL THEN 37
+						WHEN temperature < 30 OR temperature > 43 THEN 37
 						ELSE temperature
 					END AS temperature,
 					CASE
-						WHEN oxygen_saturation IS NULL THEN '-1'
-						WHEN oxygen_saturation < 85 OR oxygen_saturation > 105 THEN '-1'
+						WHEN oxygen_saturation IS NULL THEN 95
+						WHEN oxygen_saturation < 85 OR oxygen_saturation > 105 THEN 95
 						ELSE oxygen_saturation
 					END AS oxygen_saturation,
 					CASE
-						WHEN blood_sugar IS NULL THEN 'n/a'
-						WHEN blood_sugar < 65 OR blood_sugar > 255 THEN '-1'
+						WHEN blood_sugar IS NULL THEN 175
+						WHEN blood_sugar < 65 OR blood_sugar > 255 THEN 160
 						ELSE blood_sugar
 					END AS blood_sugar
-				FROM bronze.VitalSigns
+				FROM bronze.VitalSigns AS src
+				WHERE NOT EXISTS (
+					SELECT 1
+					FROM bronze.VitalSigns AS des
+					WHERE src.vital_id = des.vital_id
+				)
 			SET @end_time = GETDATE();
 			PRINT '>> Load Duration: ' + CAST(DATEDIFF(SECOND, @start_time, @end_time) AS NVARCHAR) + ' seconds';
 			PRINT '>> --------';
 
 			--table LabResult
 			SET @start_time = GETDATE();
-			PRINT '>> Truncating Table: silver.LabResults';
-			TRUNCATE TABLE silver.LabResults;
+			--PRINT '>> Truncating Table: silver.LabResults';
+			--TRUNCATE TABLE silver.LabResults;
 			PRINT '>> Inserting Data Into: silver.LabResults';
 			INSERT INTO silver.LabResults(
 				lab_result_id,
@@ -395,7 +487,12 @@ BEGIN
 						WHEN test_date IS NULL THEN GETDATE()
 						ELSE test_date
 					END AS test_date
-				FROM bronze.LabResults
+				FROM bronze.LabResults AS src
+				WHERE NOT EXISTS (
+					SELECT 1
+					FROM bronze.LabResults AS des
+					WHERE src.lab_result_id = des.lab_result_id
+				)
 			SET @end_time = GETDATE();
 			PRINT '>> Load Duration: ' + CAST(DATEDIFF(SECOND, @start_time, @end_time) AS NVARCHAR) + ' seconds';
 			PRINT '>> --------';
