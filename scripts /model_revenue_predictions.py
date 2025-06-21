@@ -70,8 +70,31 @@ def make_revenue_prediction_in_5_months_csv():
 
     df_all.to_csv('revenue_prediction_in_5_months.csv', index=False)
 
-    # Hiển thị bảng kết quả
-    print(df_all)
+    # Vẽ biểu đồ
+    plt.figure(figsize=(12, 6))
+    sns.set_style("whitegrid")
+    sns.lineplot(data=df_all, x='date', y='total_revenue', hue='type', marker='o', palette='Set2')
+
+    # Định dạng trục X
+    plt.gca().xaxis.set_major_formatter(mdates.DateFormatter('Thg %m %Y'))
+    plt.gca().xaxis.set_major_locator(mdates.MonthLocator())
+
+    # ➕ Thêm đường phân cách giữa dữ liệu thật và dự đoán
+    first_pred_date = df_future['date'].min()
+    plt.axvline(first_pred_date, color='gray', linestyle='--', linewidth=1.5)
+    plt.text(first_pred_date, df_all['total_revenue'].max() * 1.01, '→ Dự đoán', color='gray', ha='left', fontsize=10)
+
+    # Trang trí thêm
+    plt.title('📈 Dự đoán tổng doanh thu 3 tháng tiếp theo', fontsize=14)
+    plt.xlabel('Thời gian')
+    plt.ylabel('Tổng doanh thu')
+    plt.xticks(rotation=45)
+    plt.tight_layout()
+
+    # ✅ Lưu ảnh thay vì hiển thị
+    plt.savefig('revenue_prediction_in_5_months.jpg', dpi=300)
+    plt.close()
+    print("✅ Biểu đồ đã được lưu thành revenue_prediction_in_5_months.jpg")
 
 def make_tbl_revenue_prediction_in_5_months():
     import pyodbc
